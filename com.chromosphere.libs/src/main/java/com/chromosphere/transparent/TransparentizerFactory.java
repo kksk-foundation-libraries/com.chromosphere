@@ -45,7 +45,7 @@ public class TransparentizerFactory<Source, Destination> {
 		final String transparentizerClassName = ProxyFactory.nameGenerator.get(destinationClassName);
 		final String interfaceName = Transparentizer.class.getName();
 		final String delegateClassName = delegateClass.getName();
-		LOG.debug("\nsourceClass:[{}],\ndestinationClassName:[{}],\ndelegateClassName:[{}],\ntransparencerClassName:[{}],\ninterfaceName:[{}]", sourceClass.getName(), destinationClassName, delegateClassName, transparentizerClassName, interfaceName);
+		LOG.debug("\nsourceClass:[{}],\ndestinationClassName:[{}],\ndelegateClassName:[{}],\ntransparentizerClassName:[{}],\ninterfaceName:[{}]", sourceClass.getName(), destinationClassName, delegateClassName, transparentizerClassName, interfaceName);
 
 		Multimap<String, CtMethod> transparentClassMethods = MultimapBuilder.linkedHashKeys().arrayListValues().build();
 		CtClass destinationCtClass = CLASS_POOL.get(destinationClassName);
