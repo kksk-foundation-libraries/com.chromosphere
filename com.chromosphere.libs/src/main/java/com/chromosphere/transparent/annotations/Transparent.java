@@ -21,5 +21,5 @@ public @interface Transparent {
 
 	Class<?> sourceClass();
 
-	Class<?> distinationClass();
+	Class<?> destinationClass();
 }

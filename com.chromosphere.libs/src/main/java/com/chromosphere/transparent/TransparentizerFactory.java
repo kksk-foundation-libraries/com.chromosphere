@@ -23,8 +23,8 @@ import javassist.NotFoundException;
 import javassist.util.proxy.ProxyFactory;
 
 @SuppressWarnings({ "unchecked" })
-public class TransparencerFactory<Source, Distination> {
-	private static final Logger LOG = LoggerFactory.getLogger(TransparencerFactory.class);
+public class TransparentizerFactory<Source, Destination> {
+	private static final Logger LOG = LoggerFactory.getLogger(TransparentizerFactory.class);
 
 	private static final ClassPool CLASS_POOL = ClassPool.getDefault();
 
@@ -40,56 +40,56 @@ public class TransparencerFactory<Source, Distination> {
 	private final Constructor<?> constructor1;
 	private final Constructor<?> constructor2;
 
-	TransparencerFactory(Class<Source> sourceClass, Class<Distination> distinationClass, Class<?> delegateClass, String initialize, String terminate) throws Exception {
-		final String distinationClassName = distinationClass.getName();
-		final String transparencerClassName = ProxyFactory.nameGenerator.get(distinationClassName);
-		final String interfaceName = Transparencer.class.getName();
+	TransparentizerFactory(Class<Source> sourceClass, Class<Destination> destinationClass, Class<?> delegateClass, String initialize, String terminate) throws Exception {
+		final String destinationClassName = destinationClass.getName();
+		final String transparentizerClassName = ProxyFactory.nameGenerator.get(destinationClassName);
+		final String interfaceName = Transparentizer.class.getName();
 		final String delegateClassName = delegateClass.getName();
-		LOG.debug("\nsourceClass:[{}],\ndistinationClassName:[{}],\ndelegateClassName:[{}],\ntransparencerClassName:[{}],\ninterfaceName:[{}]", sourceClass.getName(), distinationClassName, delegateClassName, transparencerClassName, interfaceName);
+		LOG.debug("\nsourceClass:[{}],\ndestinationClassName:[{}],\ndelegateClassName:[{}],\ntransparencerClassName:[{}],\ninterfaceName:[{}]", sourceClass.getName(), destinationClassName, delegateClassName, transparentizerClassName, interfaceName);
 
 		Multimap<String, CtMethod> transparentClassMethods = MultimapBuilder.linkedHashKeys().arrayListValues().build();
-		CtClass distinationCtClass = CLASS_POOL.get(distinationClassName);
+		CtClass destinationCtClass = CLASS_POOL.get(destinationClassName);
 		CtClass delegateCtClass = CLASS_POOL.get(delegateClassName);
 		for (CtMethod delegateCtMethod : delegateCtClass.getMethods()) {
 			if (!couldNotDefine.contains(delegateCtMethod.getName()) && checkScope(delegateCtMethod.getModifiers())) {
-				LOG.debug("terget method:[{}]", delegateCtMethod.getName());
+				LOG.debug("target method:[{}]", delegateCtMethod.getName());
 				transparentClassMethods.put(delegateCtMethod.getName(), delegateCtMethod);
 			}
 		}
 
-		CtClass transparencerCtClass = CLASS_POOL.makeClass(transparencerClassName, distinationCtClass);
-		transparencerCtClass.setInterfaces(new CtClass[] { CLASS_POOL.get(interfaceName) });
-		transparencerCtClass.addField(CtField.make(String.format("private final %s _delegate;", delegateClassName), transparencerCtClass));
-		String shortName = transparencerClassName.substring(transparencerClassName.lastIndexOf(".") + 1);
-		transparencerCtClass.addConstructor(CtNewConstructor.make(String.format("public %s(%s _delegate) {this._delegate = _delegate;}", shortName, delegateClassName), transparencerCtClass));
+		CtClass transparentizerCtClass = CLASS_POOL.makeClass(transparentizerClassName, destinationCtClass);
+		transparentizerCtClass.setInterfaces(new CtClass[] { CLASS_POOL.get(interfaceName) });
+		transparentizerCtClass.addField(CtField.make(String.format("private final %s _delegate;", delegateClassName), transparentizerCtClass));
+		String shortName = transparentizerClassName.substring(transparentizerClassName.lastIndexOf(".") + 1);
+		transparentizerCtClass.addConstructor(CtNewConstructor.make(String.format("public %s(%s _delegate) {this._delegate = _delegate;}", shortName, delegateClassName), transparentizerCtClass));
 		if (!"".equals(initialize)) {
-			CtMethod initializeCtMethod = CtNewMethod.make(String.format("public void _initialize() {_delegate.%s();}", initialize), transparencerCtClass);
-			transparencerCtClass.addMethod(initializeCtMethod);
+			CtMethod initializeCtMethod = CtNewMethod.make(String.format("public void _initialize() {_delegate.%s();}", initialize), transparentizerCtClass);
+			transparentizerCtClass.addMethod(initializeCtMethod);
 		} else {
-			CtMethod initializeCtMethod = CtNewMethod.make(String.format("public void _initialize() {}"), transparencerCtClass);
-			transparencerCtClass.addMethod(initializeCtMethod);
+			CtMethod initializeCtMethod = CtNewMethod.make(String.format("public void _initialize() {}"), transparentizerCtClass);
+			transparentizerCtClass.addMethod(initializeCtMethod);
 		}
 		if (!"".equals(terminate)) {
-			CtMethod terminateCtMethod = CtNewMethod.make(String.format("public void _terminate() {_delegate.%s();}", terminate), transparencerCtClass);
-			transparencerCtClass.addMethod(terminateCtMethod);
+			CtMethod terminateCtMethod = CtNewMethod.make(String.format("public void _terminate() {_delegate.%s();}", terminate), transparentizerCtClass);
+			transparentizerCtClass.addMethod(terminateCtMethod);
 		} else {
-			CtMethod terminateCtMethod = CtNewMethod.make(String.format("public void _terminate() {}"), transparencerCtClass);
-			transparencerCtClass.addMethod(terminateCtMethod);
+			CtMethod terminateCtMethod = CtNewMethod.make(String.format("public void _terminate() {}"), transparentizerCtClass);
+			transparentizerCtClass.addMethod(terminateCtMethod);
 		}
-		for (CtMethod distinationCtMethod : distinationCtClass.getMethods()) {
-			for (CtMethod delegateCtMethod : transparentClassMethods.get(distinationCtMethod.getName())) {
-				if (checkScope(distinationCtMethod.getModifiers()) && sameParams(distinationCtMethod, delegateCtMethod)) {
-					String src = getMethodSource(distinationCtMethod);
+		for (CtMethod destinationCtMethod : destinationCtClass.getMethods()) {
+			for (CtMethod delegateCtMethod : transparentClassMethods.get(destinationCtMethod.getName())) {
+				if (checkScope(destinationCtMethod.getModifiers()) && sameParams(destinationCtMethod, delegateCtMethod)) {
+					String src = getMethodSource(destinationCtMethod);
 					if (LOG.isDebugEnabled()) {
 						LOG.debug("add method:[{}]", src);
 					}
-					CtMethod transparentCtMethod = CtNewMethod.make(src, transparencerCtClass);
-					transparencerCtClass.addMethod(transparentCtMethod);
+					CtMethod transparentCtMethod = CtNewMethod.make(src, transparentizerCtClass);
+					transparentizerCtClass.addMethod(transparentCtMethod);
 				}
 			}
 		}
 		try {
-			constructor1 = transparencerCtClass.toClass().getConstructor(delegateClass);
+			constructor1 = transparentizerCtClass.toClass().getConstructor(delegateClass);
 			constructor2 = delegateClass.getConstructor(sourceClass);
 		} catch (Exception e) {
 			LOG.error("unknown error.", e);
@@ -140,20 +140,20 @@ public class TransparencerFactory<Source, Distination> {
 		return true;
 	}
 
-	private String getMethodSource(CtMethod distinationCtMethod) throws Exception {
+	private String getMethodSource(CtMethod destinationCtMethod) throws Exception {
 		StringBuilder sb = new StringBuilder();
 		CtClass[] paramTypes = null;
 		CtClass[] exceptionTypes = null;
 		CtClass returnType = null;
-		paramTypes = distinationCtMethod.getParameterTypes();
-		exceptionTypes = distinationCtMethod.getExceptionTypes();
-		returnType = distinationCtMethod.getReturnType();
-		int modifiers = distinationCtMethod.getModifiers();
+		paramTypes = destinationCtMethod.getParameterTypes();
+		exceptionTypes = destinationCtMethod.getExceptionTypes();
+		returnType = destinationCtMethod.getReturnType();
+		int modifiers = destinationCtMethod.getModifiers();
 		sb.append(Modifier.toString(modifiers)) //
 				.append(" ") //
 				.append(returnType.getName()) //
 				.append(" ") //
-				.append(distinationCtMethod.getName()) //
+				.append(destinationCtMethod.getName()) //
 				.append("(") //
 		;
 		int i = 0;
@@ -182,7 +182,7 @@ public class TransparencerFactory<Source, Distination> {
 		if (returnType != null && !CtClass.voidType.equals(returnType)) {
 			sb.append("return ");
 		}
-		sb.append("_delegate.").append(distinationCtMethod.getName()).append("(");
+		sb.append("_delegate.").append(destinationCtMethod.getName()).append("(");
 		if (paramTypes != null && paramTypes.length > 0) {
 			for (int x = 0; x < paramTypes.length; x++) {
 				if (x > 0)
@@ -195,9 +195,9 @@ public class TransparencerFactory<Source, Distination> {
 		return sb.toString();
 	}
 
-	public Distination create(Source source) {
+	public Destination create(Source source) {
 		try {
-			return (Distination) constructor1.newInstance(constructor2.newInstance(source));
+			return (Destination) constructor1.newInstance(constructor2.newInstance(source));
 		} catch (Exception e) {
 			LOG.error("unknown error.", e);
 			throw new RuntimeException(e);

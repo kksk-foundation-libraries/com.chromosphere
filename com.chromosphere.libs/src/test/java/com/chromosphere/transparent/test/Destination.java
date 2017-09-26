@@ -1,6 +1,6 @@
 package com.chromosphere.transparent.test;
 
-public class Distination {
+public class Destination {
 	private int id;
 	private String name;
 	public int getId() {

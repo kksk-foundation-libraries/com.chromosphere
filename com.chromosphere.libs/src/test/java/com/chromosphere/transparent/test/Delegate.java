@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import com.chromosphere.transparent.annotations.Transparent;
 
-@Transparent(sourceClass = Source.class, distinationClass = Distination.class, key = "hogehoge", initialize = "init", terminate = "term")
+@Transparent(sourceClass = Source.class, destinationClass = Destination.class, key = "hogehoge", initialize = "init", terminate = "term")
 public class Delegate {
 	private static final Logger LOG = LoggerFactory.getLogger(Delegate.class);
 	private Source source;
