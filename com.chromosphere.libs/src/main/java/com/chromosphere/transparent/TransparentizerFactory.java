@@ -78,7 +78,7 @@ public class TransparentizerFactory<Source, Destination> {
 		}
 		for (CtMethod destinationCtMethod : destinationCtClass.getMethods()) {
 			for (CtMethod delegateCtMethod : transparentClassMethods.get(destinationCtMethod.getName())) {
-				if (checkScope(destinationCtMethod.getModifiers()) && sameParams(destinationCtMethod, delegateCtMethod)) {
+				if (checkScope(destinationCtMethod.getModifiers()) && sameParams(destinationCtMethod, delegateCtMethod) && destinationCtMethod.getReturnType().equals(delegateCtMethod.getReturnType())) {
 					String src = getMethodSource(destinationCtMethod);
 					if (LOG.isDebugEnabled()) {
 						LOG.debug("add method:[{}]", src);
