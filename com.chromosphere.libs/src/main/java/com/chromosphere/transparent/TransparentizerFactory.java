@@ -4,6 +4,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,13 +21,13 @@ import javassist.CtNewMethod;
 import javassist.LoaderClassPath;
 import javassist.Modifier;
 import javassist.NotFoundException;
-import javassist.util.proxy.ProxyFactory;
 
 @SuppressWarnings({ "unchecked" })
 public class TransparentizerFactory<Source, Destination> {
 	private static final Logger LOG = LoggerFactory.getLogger(TransparentizerFactory.class);
 
 	private static final ClassPool CLASS_POOL = ClassPool.getDefault();
+	private static final AtomicInteger counter = new AtomicInteger();
 
 	private static final Set<String> couldNotDefine = new HashSet<>();
 	static {
@@ -42,7 +43,7 @@ public class TransparentizerFactory<Source, Destination> {
 
 	TransparentizerFactory(Class<Source> sourceClass, Class<Destination> destinationClass, Class<?> delegateClass, String initialize, String terminate) throws Exception {
 		final String destinationClassName = destinationClass.getName();
-		final String transparentizerClassName = ProxyFactory.nameGenerator.get(destinationClassName);
+		final String transparentizerClassName = destinationClassName + "_$$_" + counter.getAndIncrement();
 		final String interfaceName = Transparentizer.class.getName();
 		final String delegateClassName = delegateClass.getName();
 		LOG.debug("\nsourceClass:[{}],\ndestinationClassName:[{}],\ndelegateClassName:[{}],\ntransparentizerClassName:[{}],\ninterfaceName:[{}]", sourceClass.getName(), destinationClassName, delegateClassName, transparentizerClassName, interfaceName);
