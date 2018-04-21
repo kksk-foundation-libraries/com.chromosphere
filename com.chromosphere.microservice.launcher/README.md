@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Because I don't want to deriver "Uber.jar" and "Big Container Image", So I need a launcher for sepalated jar file.
+Because I don't want to deliver "Uber.jar" and "Big Container Image", So I need a launcher for sepalated jar file.
 
 ## 1. Kumuluz EE Launcher
 
