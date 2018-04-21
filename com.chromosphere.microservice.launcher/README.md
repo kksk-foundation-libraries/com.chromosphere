@@ -31,12 +31,12 @@ Because I don't want to deliver "Uber.jar" and "Big Container Image", So I need 
         </dependency>
     ```
 
-1. Add dependency for com.chromosphere:micrroservice.launcher:1.0.0
+1. Add dependency for com.chromosphere:microservice.launcher:1.0.0
 
     ```xml
         <dependency>
             <groupId>com.chromosphere</groupId>
-            <artifactId>micrroservice.launcher</artifactId>
+            <artifactId>microservice.launcher</artifactId>
             <version>1.0.0</version>
         </dependency>
     ```
