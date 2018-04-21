@@ -1,0 +1,41 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.chromosphere</groupId>
+	<artifactId>micrroservice.launcher</artifactId>
+	<version>1.0.0</version>
+	<properties>
+		<java.version>8</java.version>
+		<file.encoding>UTF-8</file.encoding>
+		<maven.compiler.source>${java.version}</maven.compiler.source>
+		<maven.compiler.target>${java.version}</maven.compiler.target>
+		<project.build.sourceEncoding>${file.encoding}</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>${file.encoding}</project.reporting.outputEncoding>
+		<skipTests>true</skipTests>
+		<provided.scope>provided</provided.scope>
+
+		<kumuluzee.version>2.5.2</kumuluzee.version>
+	</properties>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>com.kumuluz.ee</groupId>
+				<artifactId>kumuluzee-bom</artifactId>
+				<version>${kumuluzee.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.kumuluz.ee</groupId>
+			<artifactId>kumuluzee-microProfile-1.2</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.reflections</groupId>
+			<artifactId>reflections</artifactId>
+			<version>0.9.11</version>
+		</dependency>
+	</dependencies>
+</project>
