@@ -44,5 +44,5 @@ Because I don't want to deliver "Uber.jar" and "Big Container Image", So I need 
 1. execute following command
 
     ```shell
-    PORT={nnnn} mvn clean exec:java com.chromosphere.micrroservice.launcher.KumuluzeeLauncher
+    PORT={nnnn} mvn clean exec:java com.chromosphere.microservice.launcher.KumuluzeeLauncher
     ```
