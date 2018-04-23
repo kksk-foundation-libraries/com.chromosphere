@@ -78,12 +78,12 @@ public class KumuluzeeLauncher {
 	}
 
 	private void scanApplication() {
-		Reflections reflections = new Reflections("com.kksk");
+		Reflections reflections = new Reflections("");
 		reflections.getSubTypesOf(Application.class).stream() //
 				.forEach(clazz -> {
-					if (applicationClass != null)
-						throw new RuntimeException("Cannot launch multi-javax.ws.rs.core.Application.");
 					if (clazz.isAnnotationPresent(ApplicationPath.class)) {
+						if (applicationClass != null)
+							throw new RuntimeException("Cannot launch multi-javax.ws.rs.core.Application.");
 						applicationClass = clazz;
 						applicationClassName = clazz.getName();
 					}
