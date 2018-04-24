@@ -9,18 +9,15 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Path;
-import javax.ws.rs.core.Application;
 
-import org.reflections.Reflections;
-import org.reflections.scanners.MethodAnnotationsScanner;
-import org.reflections.scanners.SubTypesScanner;
-import org.reflections.scanners.TypeAnnotationsScanner;
-
+import com.google.common.reflect.ClassPath;
 import com.kumuluz.ee.EeApplication;
 
 import javassist.CannotCompileException;
@@ -51,7 +48,6 @@ public class KumuluzeeLauncher {
 	private File classesDir;
 	private File beansxmlDir;
 	private File webxmlDir;
-	private Reflections reflections;
 	private ClassPool classPool;
 	private Class<?> applicationClass = null;
 	private String applicationClassName = null;
@@ -65,7 +61,7 @@ public class KumuluzeeLauncher {
 	}
 
 	private void initialize() {
-		classLoader = EeApplication.class.getClassLoader();
+		classLoader = KumuluzeeLauncher.class.getClassLoader();
 		currentPath = System.getProperty("user.dir");
 		classesDir = new File(new File(currentPath), "target" + File.separator + "classes");
 		beansxmlDir = new File(classesDir, "META-INF");
@@ -78,34 +74,55 @@ public class KumuluzeeLauncher {
 	}
 
 	private void scanApplication() {
-		Reflections reflections = new Reflections("");
-		reflections.getSubTypesOf(Application.class).stream() //
-				.forEach(clazz -> {
-					if (clazz.isAnnotationPresent(ApplicationPath.class)) {
-						if (applicationClass != null)
-							throw new RuntimeException("Cannot launch multi-javax.ws.rs.core.Application.");
-						applicationClass = clazz;
-						applicationClassName = clazz.getName();
-					}
-				});
-		if (applicationClass == null) {
-			throw new RuntimeException("javax.ws.rs.core.Application is not found.");
+		try {
+			List<Class<?>> allClasses = ClassPath.from(classLoader).getAllClasses().stream().filter(info -> {
+				try {
+					info.load();
+					return true;
+				} catch (Throwable e) {
+					return false;
+				}
+			}).map(info -> info.load()).filter(clazz -> {
+				return clazz.isAnnotationPresent(ApplicationPath.class);
+			}).collect(Collectors.toList());
+			if (allClasses == null || allClasses.isEmpty()) {
+				throw new RuntimeException("javax.ws.rs.core.Application is not found.");
+			} else if (allClasses.size() > 1) {
+				throw new RuntimeException("Cannot launch multi-javax.ws.rs.core.Application.");
+			}
+			Class<?> clazz = allClasses.get(0);
+			applicationClass = clazz;
+			applicationClassName = clazz.getName();
+		} catch (IOException e) {
 		}
 	}
 
 	private void scanResources() {
-		reflections = new Reflections(applicationClass.getPackage().getName(), new SubTypesScanner(), new TypeAnnotationsScanner(), new MethodAnnotationsScanner());
-		reflections.getTypesAnnotatedWith(Path.class).stream() //
-				.forEach(clazz -> {
-					resourceClasses.putIfAbsent(clazz.getName(), clazz);
-				});
-		reflections.getMethodsAnnotatedWith(Path.class).stream() //
-				.forEach(method -> {
-					Class<?> clazz = method.getDeclaringClass();
-					resourceClasses.putIfAbsent(clazz.getName(), clazz);
-				});
-		if (resourceClasses.size() == 0) {
-			throw new RuntimeException("javax.ws.rs.Path is not found.");
+		try {
+			final String packageName = applicationClass.getPackage().getName();
+			List<Class<?>> allClasses = ClassPath.from(classLoader).getTopLevelClassesRecursive(packageName).stream().filter(info -> {
+				try {
+					info.load();
+					return true;
+				} catch (Throwable e) {
+					return false;
+				}
+			}).map(info -> info.load()).filter(clazz -> {
+				if (clazz.isAnnotationPresent(Path.class))
+					return true;
+				for (Method m : clazz.getMethods()) {
+					if (m.isAnnotationPresent(Path.class))
+						return true;
+				}
+				return false;
+			}).collect(Collectors.toList());
+			if (allClasses == null || allClasses.isEmpty()) {
+				throw new RuntimeException("javax.ws.rs.Path is not found.");
+			}
+			allClasses.stream().forEach(clazz -> {
+				resourceClasses.putIfAbsent(clazz.getName(), clazz);
+			});
+		} catch (IOException e) {
 		}
 	}
 
