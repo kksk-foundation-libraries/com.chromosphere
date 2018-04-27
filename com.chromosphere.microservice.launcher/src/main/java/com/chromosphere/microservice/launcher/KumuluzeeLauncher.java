@@ -17,7 +17,9 @@ import java.util.stream.Collectors;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Path;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.ClassPath;
+import com.google.common.reflect.ClassPath.ClassInfo;
 import com.kumuluz.ee.EeApplication;
 
 import javassist.CannotCompileException;
@@ -75,7 +77,14 @@ public class KumuluzeeLauncher {
 
 	private void scanApplication() {
 		try {
-			List<Class<?>> allClasses = ClassPath.from(classLoader).getAllClasses().stream().filter(info -> {
+			String packageName = System.getProperty("scan.package.name");
+			ImmutableSet<ClassInfo> classes = null;
+			if (packageName == null) {
+				classes = ClassPath.from(classLoader).getAllClasses();
+			} else {
+				classes = ClassPath.from(classLoader).getTopLevelClassesRecursive(packageName);
+			}
+			List<Class<?>> allClasses = classes.stream().filter(info -> {
 				try {
 					info.load();
 					return true;
